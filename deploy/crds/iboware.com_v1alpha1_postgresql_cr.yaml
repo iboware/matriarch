@@ -1,0 +1,7 @@
+apiVersion: iboware.com/v1alpha1
+kind: PostgreSQL
+metadata:
+  name: example-postgresql
+spec:
+  # Add fields here
+  size: 3
