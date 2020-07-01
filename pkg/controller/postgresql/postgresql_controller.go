@@ -3,9 +3,11 @@ package postgresql
 import (
 	"context"
 
-	ibowarev1alpha1 "postgres-operator/pkg/apis/iboware/v1alpha1"
+	postgresqlv1alpha1 "postgres-operator/pkg/apis/postgresql/v1alpha1"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -47,16 +49,16 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource PostgreSQL
-	err = c.Watch(&source.Kind{Type: &ibowarev1alpha1.PostgreSQL{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &postgresqlv1alpha1.PostgreSQL{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource Pods and requeue the owner PostgreSQL
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &*appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &ibowarev1alpha1.PostgreSQL{},
+		OwnerType:    &postgresqlv1alpha1.PostgreSQL{},
 	})
 	if err != nil {
 		return err
@@ -88,7 +90,7 @@ func (r *ReconcilePostgreSQL) Reconcile(request reconcile.Request) (reconcile.Re
 	reqLogger.Info("Reconciling PostgreSQL")
 
 	// Fetch the PostgreSQL instance
-	instance := &ibowarev1alpha1.PostgreSQL{}
+	instance := &postgresqlv1alpha1.PostgreSQL{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -110,7 +112,7 @@ func (r *ReconcilePostgreSQL) Reconcile(request reconcile.Request) (reconcile.Re
 	}
 
 	// Check if this Pod already exists
-	found := &corev1.Pod{}
+	found := &appsv1.Deployment{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, found)
 	if err != nil && errors.IsNotFound(err) {
 		reqLogger.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
@@ -131,24 +133,20 @@ func (r *ReconcilePostgreSQL) Reconcile(request reconcile.Request) (reconcile.Re
 }
 
 // newPodForCR returns a busybox pod with the same name/namespace as the cr
-func newPodForCR(cr *ibowarev1alpha1.PostgreSQL) *corev1.Pod {
+func newStatefulSetForCR(cr *postgresqlv1alpha1.PostgreSQL) *appsv1.StatefulSet {
 	labels := map[string]string{
 		"app": cr.Name,
 	}
-	return &corev1.Pod{
+	return &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + "-pod",
 			Namespace: cr.Namespace,
 			Labels:    labels,
 		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
-				},
-			},
-		},
+		Spec: appsv1.StatefulSetSpec{},
 	}
+}
+
+func newServiceForCR(cr *postgresqlv1alpha1.PostgreSQL) *corev1.Service {
+
 }

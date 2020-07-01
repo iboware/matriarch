@@ -1,4 +1,4 @@
-apiVersion: iboware.com/v1alpha1
+apiVersion: postgresql.iboware.com/v1alpha1
 kind: PostgreSQL
 metadata:
   name: example-postgresql

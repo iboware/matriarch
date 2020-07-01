@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"postgres-operator/pkg/apis/iboware/v1alpha1"
+	"postgres-operator/pkg/apis/postgresql/v1alpha1"
 )
 
 func init() {
