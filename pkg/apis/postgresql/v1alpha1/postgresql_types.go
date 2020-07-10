@@ -14,7 +14,8 @@ type PostgreSQLSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// Size is the size of the PostgreSQL deployment
-	Size int32 `json:"size"`
+	Size  int32  `json:"size"`
+	Image string `json:"image,omitempty"`
 }
 
 // PostgreSQLStatus defines the observed state of PostgreSQL

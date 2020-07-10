@@ -6,7 +6,7 @@ import (
 	postgresqlv1alpha1 "postgres-operator/pkg/apis/postgresql/v1alpha1"
 
 	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -56,7 +56,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource Pods and requeue the owner PostgreSQL
-	err = c.Watch(&source.Kind{Type: &*appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &appsv1.StatefulSet{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &postgresqlv1alpha1.PostgreSQL{},
 	})
@@ -132,21 +132,93 @@ func (r *ReconcilePostgreSQL) Reconcile(request reconcile.Request) (reconcile.Re
 	return reconcile.Result{}, nil
 }
 
+//[spec.selector: Required value, spec.template.metadata.labels: Invalid value: map[string]string(nil): `selector` does not match template `labels`]"
 // newPodForCR returns a busybox pod with the same name/namespace as the cr
 func newStatefulSetForCR(cr *postgresqlv1alpha1.PostgreSQL) *appsv1.StatefulSet {
-	labels := map[string]string{
-		"app": cr.Name,
-	}
-	return &appsv1.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-pod",
-			Namespace: cr.Namespace,
-			Labels:    labels,
+	labels := labelsForPostgreSQL(cr.Name)
+
+	// Constants for hello-stateful StatefulSet & Volumes
+	const (
+		AppImage         = "nginxdemos/nginx-hello:latest"
+		AppContainerName = "hello-stateful"
+		ImagePullPolicy  = v1.PullIfNotPresent
+		DiskSize         = 1 * 1000 * 1000 * 1000
+	)
+
+	var (
+		// storageClassName              = "standard"
+		// diskSize                      = *resource.NewQuantity(DiskSize, resource.DecimalSI)
+		terminationGracePeriodSeconds = int64(10)
+		// accessMode                    = []v1.PersistentVolumeAccessMode{v1.ReadWriteOnce}
+		// resourceList                  = v1.ResourceList{v1.ResourceStorage: diskSize}
+	)
+
+	statefulset := &appsv1.StatefulSet{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "StatefulSet",
+			APIVersion: "apps/v1",
 		},
-		Spec: appsv1.StatefulSetSpec{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.ObjectMeta.Name,
+			Namespace: cr.Namespace,
+		},
+		Spec: appsv1.StatefulSetSpec{
+			Selector: &metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			ServiceName: cr.ObjectMeta.Name,
+			Replicas:    &cr.Spec.Size,
+			Template: v1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: v1.PodSpec{
+					TerminationGracePeriodSeconds: &terminationGracePeriodSeconds,
+					Containers: []v1.Container{
+						{
+							Name:            AppContainerName,
+							Image:           cr.Spec.Image,
+							ImagePullPolicy: ImagePullPolicy,
+							// VolumeMounts: []v1.VolumeMount{
+							// 	{
+							// 		Name:      AppVolumeName,
+							// 		MountPath: AppVolumeMountPath,
+							// 	},
+							// },
+						},
+					},
+					// Volumes: []v1.Volume{
+					// 	{
+					// 		Name: AppVolumeName,
+					// 		VolumeSource: v1.VolumeSource{
+					// 			PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+					// 				ClaimName: cr.ObjectMeta.Name,
+					// 			},
+					// 		},
+					// 	},
+					// },
+				},
+			},
+		},
 	}
+	return statefulset
 }
 
-func newServiceForCR(cr *postgresqlv1alpha1.PostgreSQL) *corev1.Service {
-
+// labelsForMemcached returns the labels for selecting the resources
+// belonging to the given PostgreSQL CR name.
+func labelsForPostgreSQL(name string) map[string]string {
+	return map[string]string{"app": "postgresql", "postgresql_cr": name}
 }
+
+// getPodNames returns the pod names of the array of pods passed in
+func getPodNames(pods []v1.Pod) []string {
+	var podNames []string
+	for _, pod := range pods {
+		podNames = append(podNames, pod.Name)
+	}
+	return podNames
+}
+
+// func newServiceForCR(cr *postgresqlv1alpha1.PostgreSQL) *corev1.Service {
+
+// }
