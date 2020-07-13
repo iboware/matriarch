@@ -13,9 +13,10 @@ type PostgreSQLSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	// Size is the size of the PostgreSQL deployment
-	Size  int32  `json:"size"`
-	Image string `json:"image,omitempty"`
+	// Replicas is the size of the PostgreSQL deployment
+	Replicas int32 `json:"replicas"`
+	//DiskSize is the persistent volume siz of the PostgreSQL deployment. (example: 8Gi,10Gi)
+	DiskSize string `json:"disksize"`
 }
 
 // PostgreSQLStatus defines the observed state of PostgreSQL

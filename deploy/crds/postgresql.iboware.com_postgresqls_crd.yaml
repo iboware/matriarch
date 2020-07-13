@@ -31,12 +31,17 @@ spec:
           spec:
             description: PostgreSQLSpec defines the desired state of PostgreSQL
             properties:
-              size:
-                description: Size is the size of the PostgreSQL deployment
+              disksize:
+                description: 'DiskSize is the persistent volume siz of the PostgreSQL
+                  deployment. (example: 8Gi,10Gi)'
+                type: string
+              replicas:
+                description: Replicas is the size of the PostgreSQL deployment
                 format: int32
                 type: integer
             required:
-            - size
+            - disksize
+            - replicas
             type: object
           status:
             description: PostgreSQLStatus defines the observed state of PostgreSQL

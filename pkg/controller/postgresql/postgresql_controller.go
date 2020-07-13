@@ -2,14 +2,15 @@ package postgresql
 
 import (
 	"context"
+	"reflect"
 
 	postgresqlv1alpha1 "postgres-operator/pkg/apis/postgresql/v1alpha1"
+	"postgres-operator/pkg/postgresql"
 
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -54,7 +55,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource Pods and requeue the owner PostgreSQL
 	err = c.Watch(&source.Kind{Type: &appsv1.StatefulSet{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
@@ -80,8 +80,6 @@ type ReconcilePostgreSQL struct {
 
 // Reconcile reads that state of the cluster for a PostgreSQL object and makes changes based on the state read
 // and what is in the PostgreSQL.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Pod as an example
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
@@ -99,126 +97,134 @@ func (r *ReconcilePostgreSQL) Reconcile(request reconcile.Request) (reconcile.Re
 			// Return and don't requeue
 			return reconcile.Result{}, nil
 		}
+
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
 
-	// Define a new Pod object
-	statefulSet := newStatefulSetForCR(instance)
+	// Define new objects
+	statefulSet := postgresql.NewStatefulSetForCR(instance)
+	service := postgresql.NewServiceForCR(instance)
+	serviceHeadless := postgresql.NewServiceHeadlessForCR(instance)
+	secret := postgresql.NewSecretForCR(instance)
+	configMap, err := postgresql.NewConfigMapForCR(instance)
 
-	// Set PostgreSQL instance as the owner and controller
-	if err := controllerutil.SetControllerReference(instance, statefulSet, r.scheme); err != nil {
-		return reconcile.Result{}, err
-	}
+	secretFound := &v1.Secret{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: secret.Name, Namespace: secret.Namespace}, secretFound)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			controllerutil.SetControllerReference(instance, secret, r.scheme)
+			err = r.client.Create(context.TODO(), secret)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		} else {
+			reqLogger.Info("failed to get secret")
+			return reconcile.Result{}, err
+		}
+	} else if !reflect.DeepEqual(secret.StringData, secretFound.StringData) {
+		secret.ObjectMeta = secretFound.ObjectMeta
 
-	// Check if this Pod already exists
-	found := &appsv1.StatefulSet{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: statefulSet.Name, Namespace: statefulSet.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Pod", "statefulSet.Namespace", statefulSet.Namespace, "statefulSet.Name", statefulSet.Name)
-		err = r.client.Create(context.TODO(), statefulSet)
+		controllerutil.SetControllerReference(instance, secret, r.scheme)
+		err = r.client.Update(context.TODO(), secret)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
-
-		// Pod created successfully - don't requeue
-		return reconcile.Result{}, nil
-	} else if err != nil {
-		return reconcile.Result{}, err
+		reqLogger.Info("secret updated")
 	}
 
-	// Pod already exists - don't requeue
-	reqLogger.Info("Skip reconcile: StatefulSet already exists", "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
+	configMapFound := &v1.ConfigMap{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: configMap.Name, Namespace: configMap.Namespace}, configMapFound)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			controllerutil.SetControllerReference(instance, configMap, r.scheme)
+			err = r.client.Create(context.TODO(), configMap)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		} else {
+			reqLogger.Info("failed to get ConfigMap")
+			return reconcile.Result{}, err
+		}
+	} else if !reflect.DeepEqual(configMap.Data, configMapFound.Data) {
+		configMap.ObjectMeta = configMapFound.ObjectMeta
+		controllerutil.SetControllerReference(instance, configMap, r.scheme)
+		err = r.client.Update(context.TODO(), configMap)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		reqLogger.Info("ConfigMap updated")
+	}
+
+	serviceFound := &v1.Service{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, serviceFound)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			controllerutil.SetControllerReference(instance, service, r.scheme)
+			err = r.client.Create(context.TODO(), service)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		} else {
+			reqLogger.Info("failed to get Service")
+			return reconcile.Result{}, err
+		}
+	} else if !reflect.DeepEqual(service.Spec, serviceFound.Spec) {
+		service.ObjectMeta = serviceFound.ObjectMeta
+		controllerutil.SetControllerReference(instance, service, r.scheme)
+		err = r.client.Update(context.TODO(), service)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		reqLogger.Info("Service updated")
+	}
+
+	serviceHeadlessFound := &v1.Service{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: serviceHeadless.Name, Namespace: serviceHeadless.Namespace}, serviceHeadlessFound)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			controllerutil.SetControllerReference(instance, serviceHeadless, r.scheme)
+			err = r.client.Create(context.TODO(), serviceHeadless)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		} else {
+			reqLogger.Info("failed to get Headless Service")
+			return reconcile.Result{}, err
+		}
+	} else if !reflect.DeepEqual(serviceHeadless.Spec, serviceHeadlessFound.Spec) {
+		serviceHeadless.ObjectMeta = serviceHeadlessFound.ObjectMeta
+		controllerutil.SetControllerReference(instance, serviceHeadless, r.scheme)
+		err = r.client.Update(context.TODO(), serviceHeadless)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		reqLogger.Info("Headless Service updated")
+	}
+
+	statefulSetFound := &appsv1.StatefulSet{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: statefulSet.Name, Namespace: statefulSet.Namespace}, statefulSetFound)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			controllerutil.SetControllerReference(instance, statefulSet, r.scheme)
+			err = r.client.Create(context.TODO(), statefulSet)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		} else {
+			reqLogger.Info("failed to get statefulSet")
+			return reconcile.Result{}, err
+		}
+	} else if !reflect.DeepEqual(statefulSet.Spec, statefulSetFound.Spec) {
+		statefulSet.ObjectMeta = statefulSetFound.ObjectMeta
+		controllerutil.SetControllerReference(instance, statefulSet, r.scheme)
+		err = r.client.Update(context.TODO(), statefulSet)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		reqLogger.Info("statefulSet updated")
+	}
+
+	r.client.Status().Update(context.TODO(), instance)
 	return reconcile.Result{}, nil
 }
-
-//[spec.selector: Required value, spec.template.metadata.labels: Invalid value: map[string]string(nil): `selector` does not match template `labels`]"
-// newPodForCR returns a busybox pod with the same name/namespace as the cr
-func newStatefulSetForCR(cr *postgresqlv1alpha1.PostgreSQL) *appsv1.StatefulSet {
-	labels := labelsForPostgreSQL(cr.Name)
-
-	// Constants for hello-stateful StatefulSet & Volumes
-	const (
-		AppImage         = "nginxdemos/nginx-hello:latest"
-		AppContainerName = "hello-stateful"
-		ImagePullPolicy  = v1.PullIfNotPresent
-		DiskSize         = 1 * 1000 * 1000 * 1000
-	)
-
-	var (
-		// storageClassName              = "standard"
-		// diskSize                      = *resource.NewQuantity(DiskSize, resource.DecimalSI)
-		terminationGracePeriodSeconds = int64(10)
-		// accessMode                    = []v1.PersistentVolumeAccessMode{v1.ReadWriteOnce}
-		// resourceList                  = v1.ResourceList{v1.ResourceStorage: diskSize}
-	)
-
-	statefulset := &appsv1.StatefulSet{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "StatefulSet",
-			APIVersion: "apps/v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.ObjectMeta.Name,
-			Namespace: cr.Namespace,
-		},
-		Spec: appsv1.StatefulSetSpec{
-			Selector: &metav1.LabelSelector{
-				MatchLabels: labels,
-			},
-			ServiceName: cr.ObjectMeta.Name,
-			Replicas:    &cr.Spec.Size,
-			Template: v1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: labels,
-				},
-				Spec: v1.PodSpec{
-					TerminationGracePeriodSeconds: &terminationGracePeriodSeconds,
-					Containers: []v1.Container{
-						{
-							Name:            AppContainerName,
-							Image:           cr.Spec.Image,
-							ImagePullPolicy: ImagePullPolicy,
-							// VolumeMounts: []v1.VolumeMount{
-							// 	{
-							// 		Name:      AppVolumeName,
-							// 		MountPath: AppVolumeMountPath,
-							// 	},
-							// },
-						},
-					},
-					// Volumes: []v1.Volume{
-					// 	{
-					// 		Name: AppVolumeName,
-					// 		VolumeSource: v1.VolumeSource{
-					// 			PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
-					// 				ClaimName: cr.ObjectMeta.Name,
-					// 			},
-					// 		},
-					// 	},
-					// },
-				},
-			},
-		},
-	}
-	return statefulset
-}
-
-// labelsForMemcached returns the labels for selecting the resources
-// belonging to the given PostgreSQL CR name.
-func labelsForPostgreSQL(name string) map[string]string {
-	return map[string]string{"app": "postgresql", "postgresql_cr": name}
-}
-
-// getPodNames returns the pod names of the array of pods passed in
-func getPodNames(pods []v1.Pod) []string {
-	var podNames []string
-	for _, pod := range pods {
-		podNames = append(podNames, pod.Name)
-	}
-	return podNames
-}
-
-// func newServiceForCR(cr *postgresqlv1alpha1.PostgreSQL) *corev1.Service {
-
-// }
