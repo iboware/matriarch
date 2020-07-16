@@ -1,8 +1,9 @@
-module github.com/iboware/postgres-operator
+module postgres-operator
 
 go 1.13
 
 require (
+	github.com/iboware/postgres-operator v0.0.0-20200716043120-07e8094f5d7e
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/operator-framework/operator-sdk v0.18.1
 	github.com/prometheus/common v0.9.1
@@ -13,7 +14,6 @@ require (
 	k8s.io/apiextensions-apiserver v0.18.2
 	k8s.io/apimachinery v0.18.2
 	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/code-generator v0.18.6 // indirect
 	sigs.k8s.io/controller-runtime v0.6.0
 )
 
