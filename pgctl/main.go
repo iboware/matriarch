@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "postgres-operator/pgctl/cmd"
+import "github.com/iboware/postgresql-operator/pgctl/cmd"
 
 func main() {
 	cmd.Execute()

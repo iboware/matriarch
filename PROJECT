@@ -1,0 +1,11 @@
+domain: iboware.com
+layout: go.kubebuilder.io/v2
+multigroup: true
+repo: github.com/iboware/postgresql-operator
+resources:
+- group: database
+  kind: PostgreSQL
+  version: v1alpha1
+version: 3-alpha
+plugins:
+  go.operator-sdk.io/v2-alpha: {}

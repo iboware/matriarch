@@ -1,9 +1,0 @@
-apiVersion: postgresql.iboware.com/v1alpha1
-kind: PostgreSQL
-metadata:
-  name: iboware
-  namespace: default
-spec:
-  # Add fields here
-  replicas: 3
-  disksize: "4Gi"

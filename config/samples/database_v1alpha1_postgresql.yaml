@@ -1,0 +1,7 @@
+apiVersion: database.iboware.com/v1alpha1
+kind: PostgreSQL
+metadata:
+  name: iboware
+spec:
+  disksize: 8Gi
+  replicas: 3

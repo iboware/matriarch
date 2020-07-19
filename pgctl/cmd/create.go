@@ -13,14 +13,25 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"os"
 
+	v1alpha1 "github.com/iboware/postgresql-operator/apis/database/v1alpha1"
 	"github.com/spf13/cobra"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+var replicas int32
 
 // createCmd represents the create command
 var createCmd = &cobra.Command{
@@ -30,45 +41,30 @@ var createCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("create called")
 
-		// var kubeconfig *string
-		// if home := homeDir(); home != "" {
-		// 	kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-		// } else {
-		// 	kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-		// }
-		// flag.Parse()
+		scheme := runtime.NewScheme()
+		_ = clientgoscheme.AddToScheme(scheme)
+		_ = v1alpha1.AddToScheme(scheme)
 
-		// use the current context in kubeconfig
-		// config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
-		// if err != nil {
-		// 	panic(err.Error())
-		// }
+		kubeconfig := ctrl.GetConfigOrDie()
+		kubeclient, err := client.New(kubeconfig, client.Options{Scheme: scheme})
+		if err != nil {
+			log.Fatal(err)
+		}
+		name, _ := cmd.Flags().GetString("name")
+		replicas, _ := cmd.Flags().GetInt32("replicas")
+		storage, _ := cmd.Flags().GetString("storage")
+		namespace, _ := cmd.Flags().GetString("namespace")
 
-		// create the clientset
-		// clientset, err := kubernetes.NewForConfig(config)
-		// if err != nil {
-		// 	panic(err.Error())
-		// }
-
-		// clusterdefinition := &ext.CustomResourceDefinition{
-		// 	TypeMeta: v1.TypeMeta{
-		// 		APIVersion: "postgresql.iboware.com/v1alpha1",
-		// 		Kind:       "PostgreSQL",
-		// 	},
-		// 	ObjectMeta: v1.ObjectMeta{
-		// 		Name: "",
-		// 	},
-		// }
-
-		// 	apiVersion: postgresql.iboware.com/v1alpha1
-		// kind: PostgreSQL
-		// metadata:
-		//   name: iboware
-		//   namespace: default
-		// spec:
-		//   # Add fields here
-		//   replicas: 3
-		//   disksize: "4Gi"
+		error := kubeclient.Create(context.Background(), &v1alpha1.PostgreSQL{
+			ObjectMeta: v1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+			Spec: v1alpha1.PostgreSQLSpec{Replicas: replicas, DiskSize: storage},
+		})
+		if error != nil {
+			log.Panic(error)
+		}
 	},
 }
 
@@ -83,8 +79,11 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	createCmd.Flags().StringP("name", "n", "postgresql", "Name of the cluster")
-	createCmd.Flags().IntP("replicas", "r", 3, "Amount of Replicas")
+	createCmd.Flags().StringP("name", "n", "", "Name of the Cluster")
+	createCmd.Flags().Int32P("replicas", "r", 3, "Amount of Replicas")
+	createCmd.Flags().StringP("disksize", "d", "8Gi", "Disk Size per Replica")
+	createCmd.Flags().StringP("namespace", "ns", "default", "Namespace")
+
 	createCmd.MarkFlagRequired("name")
 }
 
