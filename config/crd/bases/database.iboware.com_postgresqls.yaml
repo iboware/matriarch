@@ -40,12 +40,21 @@ spec:
               description: 'DiskSize is the persistent volume siz of the PostgreSQL
                 deployment. (example: 8Gi,10Gi)'
               type: string
+            postgrespassword:
+              description: PostgresPassword is the password for the default user of
+                PostgreSQL
+              type: string
+            repMGRpassword:
+              description: RepMGRPassword is the password for RepMGR.
+              type: string
             replicas:
               description: Replicas is the size of the PostgreSQL deployment
               format: int32
               type: integer
           required:
           - disksize
+          - postgrespassword
+          - repMGRpassword
           - replicas
           type: object
         status:

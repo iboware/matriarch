@@ -18,7 +18,7 @@ func NewStatefulSetForCR(cr *databasev1alpha1.PostgreSQL) *appsv1.StatefulSet {
 	var log = logf.Log.WithName("controller_postgresql")
 
 	labels := utils.LabelsForPostgreSQL(cr.ObjectMeta.Name)
-	envVars := envVarsForPostgreSQL(cr.ObjectMeta.Name, int(cr.Spec.Replicas))
+	envVars := envVarsForPostgreSQL(cr.ObjectMeta.Name, int(cr.Spec.Replicas), cr.ObjectMeta.Namespace)
 	livenessProbeCmd := []string{
 		"sh",
 		"-c",
@@ -151,12 +151,12 @@ func NewStatefulSetForCR(cr *databasev1alpha1.PostgreSQL) *appsv1.StatefulSet {
 	return statefulset
 }
 
-func envVarsForPostgreSQL(releaseName string, replicaCount int) []v1.EnvVar {
+func envVarsForPostgreSQL(releaseName string, replicaCount int, namespace string) []v1.EnvVar {
 
 	var partnerNodes string
 
 	for i := 0; i < replicaCount; i++ {
-		partnerNodes = partnerNodes + releaseName + "-postgresql-" + strconv.Itoa(i) + "." + releaseName + "-postgresql-headless.default.svc.cluster.local,"
+		partnerNodes = partnerNodes + releaseName + "-postgresql-" + strconv.Itoa(i) + "." + releaseName + "-postgresql-headless." + namespace + ".svc.cluster.local,"
 	}
 
 	envVars := []v1.EnvVar{
@@ -216,7 +216,7 @@ func envVarsForPostgreSQL(releaseName string, replicaCount int) []v1.EnvVar {
 		},
 		{
 			Name:  "REPMGR_PRIMARY_HOST",
-			Value: releaseName + "-postgresql-0." + releaseName + "-postgresql-headless.default.svc.cluster.local",
+			Value: releaseName + "-postgresql-0." + releaseName + "-postgresql-headless." + namespace + ".svc.cluster.local",
 		},
 		{
 			Name:  "REPMGR_NODE_NAME",
@@ -224,7 +224,7 @@ func envVarsForPostgreSQL(releaseName string, replicaCount int) []v1.EnvVar {
 		},
 		{
 			Name:  "REPMGR_NODE_NETWORK_NAME",
-			Value: "$(MY_POD_NAME)." + releaseName + "-postgresql-headless.default.svc.cluster.local",
+			Value: "$(MY_POD_NAME)." + releaseName + "-postgresql-headless." + namespace + ".svc.cluster.local",
 		},
 		{
 			Name:  "REPMGR_LOG_LEVEL",

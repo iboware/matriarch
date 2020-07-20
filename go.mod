@@ -8,6 +8,7 @@ require (
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.8.1
 	github.com/prometheus/common v0.4.1
+	github.com/sethvargo/go-password v0.2.0
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.3.2
 	k8s.io/api v0.18.2

@@ -32,6 +32,10 @@ type PostgreSQLSpec struct {
 	Replicas int32 `json:"replicas"`
 	//DiskSize is the persistent volume siz of the PostgreSQL deployment. (example: 8Gi,10Gi)
 	DiskSize string `json:"disksize"`
+	//PostgresPassword is the password for the default user of PostgreSQL
+	PostgresPassword string `json:"postgrespassword"`
+	//RepMGRPassword is the password for RepMGR.
+	RepMGRPassword string `json:"repMGRpassword"`
 }
 
 // PostgreSQLStatus defines the observed state of PostgreSQL

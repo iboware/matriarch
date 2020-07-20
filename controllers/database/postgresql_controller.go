@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"reflect"
 
 	"github.com/go-logr/logr"
 	databasev1alpha1 "github.com/iboware/postgresql-operator/apis/database/v1alpha1"
@@ -144,10 +143,9 @@ func (r *PostgreSQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 			r.Log.Info("failed to get statefulSet")
 			return reconcile.Result{}, err
 		}
-	} else if !reflect.DeepEqual(statefulSet.Spec, statefulSetFound.Spec) {
-		statefulSet.ObjectMeta = statefulSetFound.ObjectMeta
-		controllerutil.SetControllerReference(instance, statefulSet, r.Scheme)
-		err = r.Client.Patch(context.TODO(), statefulSet, client.Merge)
+	} else if (statefulSetFound.Spec.Replicas != &instance.Spec.Replicas) && (statefulSetFound.Status.ReadyReplicas == *statefulSetFound.Spec.Replicas) {
+		statefulSetFound.Spec.Replicas = &instance.Spec.Replicas
+		err = r.Client.Update(context.TODO(), statefulSetFound)
 		if err != nil {
 			return reconcile.Result{}, err
 		}

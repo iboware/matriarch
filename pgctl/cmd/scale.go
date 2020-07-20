@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 package cmd
 
 import (
@@ -25,28 +24,25 @@ import (
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// deleteCmd represents the delete command
-var deleteCmd = &cobra.Command{
-	Use:   "delete [cluster name]",
-	Short: "Deletes an existing PostgreSQL cluster",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+// scaleCmd represents the scale command
+var scaleCmd = &cobra.Command{
+	Use:   "scale [cluster name]",
+	Short: "Scales a cluster",
+	Long:  `Scales a cluster with given parameters up or down`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("delete called")
-
+		fmt.Println("scale called")
 		if len(args) < 1 {
-			log.Fatal("delete needs a name for the cluster")
+			log.Fatal("scale needs a name for the cluster")
 		}
+
 		name := args[0]
+		replicas, _ := cmd.Flags().GetInt32("replicas")
 		namespace, _ := cmd.Flags().GetString("namespace")
 
 		scheme := runtime.NewScheme()
@@ -59,28 +55,43 @@ to quickly create a Cobra application.`,
 			log.Fatal(err)
 		}
 
-		err2 := kubeclient.Delete(context.Background(), &v1alpha1.PostgreSQL{
+		cluster := v1alpha1.PostgreSQL{
 			ObjectMeta: v1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
-			}})
-		if err2 != nil {
-			log.Fatal(err2)
+			},
+		}
+
+		errGet := kubeclient.Get(context.Background(),
+			types.NamespacedName{Name: name, Namespace: namespace},
+			&cluster)
+
+		if errGet != nil {
+			log.Fatal(errGet)
+		}
+		cluster.Spec.Replicas = replicas
+
+		errUpd := kubeclient.Update(context.Background(),
+			&cluster)
+
+		if errUpd != nil {
+			log.Fatal(errUpd)
 		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(deleteCmd)
-	deleteCmd.Flags().StringP("namespace", "n", "default", "Namespace")
+	rootCmd.AddCommand(scaleCmd)
+	scaleCmd.Flags().StringP("namespace", "n", "default", "Namespace")
+	scaleCmd.Flags().Int32P("replicas", "r", 3, "Replica amount")
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// deleteCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// scaleCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// deleteCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// scaleCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -21,8 +21,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	v1alpha1 "github.com/iboware/postgresql-operator/apis/database/v1alpha1"
+	"github.com/sethvargo/go-password/password"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -35,12 +37,16 @@ var replicas int32
 
 // createCmd represents the create command
 var createCmd = &cobra.Command{
-	Use:   "create",
+	Use:   "create [cluster name]",
 	Short: "Creates a PostgreSQL cluster",
 	Long:  `Creates a PostgreSQL cluster`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("create called")
 
+		if len(args) < 1 {
+			log.Fatal("create needs a name for the cluster")
+		}
+		var generatedPass bool = false
 		scheme := runtime.NewScheme()
 		_ = clientgoscheme.AddToScheme(scheme)
 		_ = v1alpha1.AddToScheme(scheme)
@@ -50,20 +56,40 @@ var createCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		name, _ := cmd.Flags().GetString("name")
+		name := args[0]
 		replicas, _ := cmd.Flags().GetInt32("replicas")
-		storage, _ := cmd.Flags().GetString("storage")
+		storage, _ := cmd.Flags().GetString("disksize")
 		namespace, _ := cmd.Flags().GetString("namespace")
+		postgrespassword, _ := cmd.Flags().GetString("postgrespassword")
+		repmgrspassword, _ := cmd.Flags().GetString("repmgrpassword")
+
+		if len(strings.TrimSpace(postgrespassword)) == 0 {
+			postgrespassword, _ = password.Generate(32, 10, 10, false, false)
+			generatedPass = true
+		}
+
+		if len(strings.TrimSpace(repmgrspassword)) == 0 {
+			repmgrspassword = postgrespassword
+		}
 
 		error := kubeclient.Create(context.Background(), &v1alpha1.PostgreSQL{
 			ObjectMeta: v1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
 			},
-			Spec: v1alpha1.PostgreSQLSpec{Replicas: replicas, DiskSize: storage},
+			Spec: v1alpha1.PostgreSQLSpec{
+				Replicas:         replicas,
+				DiskSize:         storage,
+				PostgresPassword: postgrespassword,
+				RepMGRPassword:   repmgrspassword,
+			},
 		})
 		if error != nil {
 			log.Panic(error)
+		}
+
+		if generatedPass {
+			fmt.Printf("PostgreSQL auto-generated password: %v/n", postgrespassword)
 		}
 	},
 }
@@ -79,12 +105,11 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	createCmd.Flags().StringP("name", "n", "", "Name of the Cluster")
 	createCmd.Flags().Int32P("replicas", "r", 3, "Amount of Replicas")
 	createCmd.Flags().StringP("disksize", "d", "8Gi", "Disk Size per Replica")
-	createCmd.Flags().StringP("namespace", "ns", "default", "Namespace")
-
-	createCmd.MarkFlagRequired("name")
+	createCmd.Flags().StringP("namespace", "n", "default", "Namespace")
+	createCmd.Flags().StringP("postgrespassword", "p", "", "Password for default PostgreSql user")
+	createCmd.Flags().StringP("repmgrpassword", "m", "", "Password for RepMGR. If not specified PostgreSQL password will be used.")
 }
 
 func homeDir() string {

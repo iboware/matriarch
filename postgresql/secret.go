@@ -11,13 +11,15 @@ import (
 //NewSecretForCR creates secrets for StatefulSet
 func NewSecretForCR(cr *databasev1alpha1.PostgreSQL) *v1.Secret {
 	labels := utils.LabelsForPostgreSQL(cr.ObjectMeta.Name)
+	encodedpgPassword := cr.Spec.PostgresPassword
+	encodedrepMgrPassword := cr.Spec.RepMGRPassword
 
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: cr.ObjectMeta.Name + "-postgresql", Labels: labels, Namespace: cr.ObjectMeta.Namespace},
 		Type:       v1.SecretTypeOpaque,
 		StringData: map[string]string{
-			"postgresql-password": "WG9BbjB2Tk5yTA==",
-			"repmgr-password":     "V0xWZGVOUnR6OQ==",
+			"postgresql-password": encodedpgPassword,
+			"repmgr-password":     encodedrepMgrPassword,
 		},
 	}
 	return secret

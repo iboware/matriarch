@@ -17,9 +17,16 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"log"
 
+	v1alpha1 "github.com/iboware/postgresql-operator/apis/database/v1alpha1"
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // listCmd represents the list command
@@ -34,6 +41,27 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("list called")
+
+		scheme := runtime.NewScheme()
+		_ = clientgoscheme.AddToScheme(scheme)
+		_ = v1alpha1.AddToScheme(scheme)
+
+		kubeconfig := ctrl.GetConfigOrDie()
+		kubeclient, err := client.New(kubeconfig, client.Options{Scheme: scheme})
+		if err != nil {
+			log.Fatal(err)
+		}
+		list := v1alpha1.PostgreSQLList{}
+		err2 := kubeclient.List(context.Background(), &list)
+		if err2 != nil {
+			log.Fatal(err2)
+		}
+
+		fmt.Printf("%-20v %-20v\n", "Name", "Namespace")
+		for _, item := range list.Items {
+			fmt.Printf("%-20v %-20v\n", item.Name, item.Namespace)
+		}
+
 	},
 }
 
