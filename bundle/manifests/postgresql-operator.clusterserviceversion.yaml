@@ -58,6 +58,7 @@ spec:
           - ""
           resources:
           - configmaps
+          - persistentvolumeclaims
           - secrets
           - services
           verbs:
@@ -139,7 +140,7 @@ spec:
                 - --enable-leader-election
                 command:
                 - /manager
-                image: iboware/postgresql-operator:v0.3.6
+                image: iboware/postgresql-operator:v0.3.5
                 name: manager
                 resources:
                   limits:

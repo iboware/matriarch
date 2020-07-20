@@ -46,7 +46,7 @@ type PostgreSQLStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +genclient
+// +kubebuilder:resource:scope=Cluster
 
 // PostgreSQL is the Schema for the postgresqls API
 type PostgreSQL struct {
