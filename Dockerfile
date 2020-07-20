@@ -13,6 +13,8 @@ RUN go mod download
 COPY main.go main.go
 COPY apis/ apis/
 COPY controllers/ controllers/
+COPY postgresql/ postgresql/
+COPY utils/ utils/
 COPY scripts/ scripts/
 
 
