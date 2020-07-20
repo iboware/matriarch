@@ -41,8 +41,6 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("delete called")
-
 		if len(args) < 1 {
 			log.Fatal("delete needs a name for the cluster")
 		}
@@ -66,6 +64,8 @@ to quickly create a Cobra application.`,
 			}})
 		if err2 != nil {
 			log.Fatal(err2)
+		} else {
+			fmt.Printf("Cluster %v under Namespace:%v has been succesfully deleted.\n", name, namespace)
 		}
 	},
 }

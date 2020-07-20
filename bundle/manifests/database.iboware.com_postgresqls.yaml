@@ -12,7 +12,7 @@ spec:
     listKind: PostgreSQLList
     plural: postgresqls
     singular: postgresql
-  scope: Namespaced
+  scope: Cluster
   subresources:
     status: {}
   validation:

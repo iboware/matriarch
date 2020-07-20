@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -42,6 +43,8 @@ type PostgreSQLReconciler struct {
 
 // +kubebuilder:rbac:groups=database.iboware.com,resources=postgresqls,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=database.iboware.com,resources=postgresqls/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=apps,resources=deployments;pods;daemonsets;replicasets;statefulsets,verbs=get;update;patch;list;create;delete;watch
+// +kubebuilder:rbac:groups=core,resources=secrets;configmaps;services;persistentvolumeclaims,verbs=get;update;patch;list;create;delete;watch
 
 // Reconcile is a function
 func (r *PostgreSQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
@@ -161,5 +164,6 @@ func (r *PostgreSQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 func (r *PostgreSQLReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&databasev1alpha1.PostgreSQL{}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 2}).
 		Complete(r)
 }

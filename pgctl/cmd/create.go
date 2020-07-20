@@ -41,8 +41,6 @@ var createCmd = &cobra.Command{
 	Short: "Creates a PostgreSQL cluster",
 	Long:  `Creates a PostgreSQL cluster`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("create called")
-
 		if len(args) < 1 {
 			log.Fatal("create needs a name for the cluster")
 		}
@@ -86,11 +84,13 @@ var createCmd = &cobra.Command{
 		})
 		if error != nil {
 			log.Panic(error)
+		} else {
+			fmt.Printf("Cluster %v created under Namespace:%v\n", name, namespace)
+			if generatedPass {
+				fmt.Printf("Auto-generated postgres password: %v\n", postgrespassword)
+			}
 		}
 
-		if generatedPass {
-			fmt.Printf("PostgreSQL auto-generated password: %v/n", postgrespassword)
-		}
 	},
 }
 

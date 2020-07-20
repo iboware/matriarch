@@ -76,6 +76,8 @@ var scaleCmd = &cobra.Command{
 
 		if errUpd != nil {
 			log.Fatal(errUpd)
+		} else {
+			fmt.Printf("Cluster %v under Namespace:%v has been succesfully scaled to %d replicas.\n", name, namespace, replicas)
 		}
 	},
 }

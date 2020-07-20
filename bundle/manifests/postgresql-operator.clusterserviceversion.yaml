@@ -39,6 +39,36 @@ spec:
       clusterPermissions:
       - rules:
         - apiGroups:
+          - apps
+          resources:
+          - daemonsets
+          - deployments
+          - pods
+          - replicasets
+          - statefulsets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          - secrets
+          - services
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
           - database.iboware.com
           resources:
           - postgresqls
@@ -109,7 +139,7 @@ spec:
                 - --enable-leader-election
                 command:
                 - /manager
-                image: controller:latest
+                image: iboware/postgresql-operator:v0.3.6
                 name: manager
                 resources:
                   limits:

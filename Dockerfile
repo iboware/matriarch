@@ -15,8 +15,6 @@ COPY apis/ apis/
 COPY controllers/ controllers/
 COPY postgresql/ postgresql/
 COPY utils/ utils/
-COPY scripts/ scripts/
-
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
@@ -26,6 +24,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager 
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/manager .
+COPY scripts/ scripts/
+
 USER nonroot:nonroot
 
 ENTRYPOINT ["/manager"]
