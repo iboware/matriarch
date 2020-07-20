@@ -83,7 +83,7 @@ var createCmd = &cobra.Command{
 			},
 		})
 		if error != nil {
-			log.Panic(error)
+			log.Fatal(error)
 		} else {
 			fmt.Printf("Cluster %v created under Namespace:%v\n", name, namespace)
 			if generatedPass {

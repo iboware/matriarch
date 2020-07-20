@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package cmd
 
 import (
@@ -36,7 +37,6 @@ var scaleCmd = &cobra.Command{
 	Short: "Scales a cluster",
 	Long:  `Scales a cluster with given parameters up or down`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("scale called")
 		if len(args) < 1 {
 			log.Fatal("scale needs a name for the cluster")
 		}
