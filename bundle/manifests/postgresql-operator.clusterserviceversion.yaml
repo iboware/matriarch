@@ -1,0 +1,176 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "database.iboware.com/v1alpha1",
+          "kind": "PostgreSQL",
+          "metadata": {
+            "name": "iboware"
+          },
+          "spec": {
+            "disksize": "8Gi",
+            "replicas": 3
+          }
+        }
+      ]
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v0.19.0
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
+  name: postgresql-operator.v0.0.1
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: PostgreSQL is the Schema for the postgresqls API
+      kind: PostgreSQL
+      name: postgresqls.database.iboware.com
+      version: v1alpha1
+  description: Creates and manages High Available and Scalable PostgreSQL Clusters
+  displayName: PostgreSQL Operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - database.iboware.com
+          resources:
+          - postgresqls
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - database.iboware.com
+          resources:
+          - postgresqls/status
+          verbs:
+          - get
+          - patch
+          - update
+        serviceAccountName: postgresql-operator-manager-role
+      - rules:
+        - apiGroups:
+          - authentication.k8s.io
+          resources:
+          - tokenreviews
+          verbs:
+          - create
+        - apiGroups:
+          - authorization.k8s.io
+          resources:
+          - subjectaccessreviews
+          verbs:
+          - create
+        serviceAccountName: postgresql-operator-proxy-role
+      - rules:
+        - nonResourceURLs:
+          - /metrics
+          verbs:
+          - get
+        serviceAccountName: postgresql-operator-metrics-reader
+      deployments:
+      - name: postgresql-operator-controller-manager
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              control-plane: controller-manager
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                control-plane: controller-manager
+            spec:
+              containers:
+              - args:
+                - --secure-listen-address=0.0.0.0:8443
+                - --upstream=http://127.0.0.1:8080/
+                - --logtostderr=true
+                - --v=10
+                image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
+                name: kube-rbac-proxy
+                ports:
+                - containerPort: 8443
+                  name: https
+                resources: {}
+              - args:
+                - --metrics-addr=127.0.0.1:8080
+                - --enable-leader-election
+                command:
+                - /manager
+                image: controller:latest
+                name: manager
+                resources:
+                  limits:
+                    cpu: 100m
+                    memory: 30Mi
+                  requests:
+                    cpu: 100m
+                    memory: 20Mi
+              terminationGracePeriodSeconds: 10
+      permissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps/status
+          verbs:
+          - get
+          - update
+          - patch
+        - apiGroups:
+          - ""
+          resources:
+          - events
+          verbs:
+          - create
+          - patch
+        serviceAccountName: postgresql-operator-leader-election-role
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - postgresql
+  - operator
+  - high available
+  - scalable
+  - bitnami
+  - repmgr
+  links:
+  - name: Postgresql Operator
+    url: https://postgresql-operator.domain
+  maturity: alpha
+  provider:
+    name: iboware.com
+    url: http://www.iboware.com
+  version: 0.0.1

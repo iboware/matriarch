@@ -1,0 +1,51 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v0.19.0
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
+  name: postgresql-operator.vX.Y.Z
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: PostgreSQL is the Schema for the postgresqls API
+      kind: PostgreSQL
+      name: postgresqls.database.iboware.com
+      version: v1alpha1
+  description: Creates and manages High Available and Scalable PostgreSQL Clusters
+  displayName: PostgreSQL Operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - postgresql
+  - operator
+  - high available
+  - scalable
+  - bitnami
+  - repmgr
+  links:
+  - name: Postgresql Operator
+    url: https://postgresql-operator.domain
+  maturity: alpha
+  provider:
+    name: iboware.com
+    url: http://www.iboware.com
+  version: 0.0.0
