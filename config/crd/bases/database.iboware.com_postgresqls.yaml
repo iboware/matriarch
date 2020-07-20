@@ -14,7 +14,7 @@ spec:
     listKind: PostgreSQLList
     plural: postgresqls
     singular: postgresql
-  scope: Namespaced
+  scope: Cluster
   subresources:
     status: {}
   validation:
@@ -44,18 +44,18 @@ spec:
               description: PostgresPassword is the password for the default user of
                 PostgreSQL
               type: string
-            repMGRpassword:
-              description: RepMGRPassword is the password for RepMGR.
-              type: string
             replicas:
               description: Replicas is the size of the PostgreSQL deployment
               format: int32
               type: integer
+            repmgrpassword:
+              description: RepMGRPassword is the password for RepMGR.
+              type: string
           required:
           - disksize
           - postgrespassword
-          - repMGRpassword
           - replicas
+          - repmgrpassword
           type: object
         status:
           description: PostgreSQLStatus defines the observed state of PostgreSQL

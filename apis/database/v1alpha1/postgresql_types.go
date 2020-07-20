@@ -35,7 +35,7 @@ type PostgreSQLSpec struct {
 	//PostgresPassword is the password for the default user of PostgreSQL
 	PostgresPassword string `json:"postgrespassword"`
 	//RepMGRPassword is the password for RepMGR.
-	RepMGRPassword string `json:"repMGRpassword"`
+	RepMGRPassword string `json:"repmgrpassword"`
 }
 
 // PostgreSQLStatus defines the observed state of PostgreSQL
