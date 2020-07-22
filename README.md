@@ -5,7 +5,7 @@ A Kubernetes Operator to Deploy High Available and Scalable PostgreSQL Clusters
 
 PostgreSQL Operator currently can create and manage **simple** High Available and Scalable Clusters of PostgreSQL based on bitnami/postgresql-repmgr image via **pgctl**, which is a CLI tool to manage deployed PostgreSQL Operators. It is also possible to create and manage clusters via YAML/JSON definitions:
 
-**pgctl Demonstration**
+**pgctl Demonstration** (Create/List/Delete operations)
 
 [![asciicast](https://asciinema.org/a/tULY7wnMRyyTHojc79eKamDS2.svg)](https://asciinema.org/a/tULY7wnMRyyTHojc79eKamDS2)
 
