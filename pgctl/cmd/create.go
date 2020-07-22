@@ -62,7 +62,7 @@ var createCmd = &cobra.Command{
 		repmgrspassword, _ := cmd.Flags().GetString("repmgrpassword")
 
 		if len(strings.TrimSpace(postgrespassword)) == 0 {
-			postgrespassword, _ = password.Generate(32, 10, 10, false, false)
+			postgrespassword, _ = password.Generate(8, 3, 3, false, false)
 			generatedPass = true
 		}
 
