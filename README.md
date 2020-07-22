@@ -7,7 +7,7 @@ PostgreSQL Operator currently can create and manage **simple** High Available an
 
 **pgctl Demonstration**
 
-![alt text](https://iboware.com/assets/img/pgctl-demo.gif "pgctl Demonstration")
+[![asciicast](https://asciinema.org/a/tULY7wnMRyyTHojc79eKamDS2.svg)](https://asciinema.org/a/tULY7wnMRyyTHojc79eKamDS2)
 
 **Example Custom Resource to create a cluster**
 
