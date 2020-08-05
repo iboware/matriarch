@@ -1,7 +1,7 @@
 # Matriarch
 Matriarch is a CLI utility and a Kubernetes Operator to Deploy High Available and Scalable PostgreSQL Clusters
 
-The elephant herd is led by the oldest and largest female cow known as the **matriarch**. This was the inspiration for our projects name.
+The PostgreSQL logo elephant is named "Slonik". The elephant herd is led by the oldest and largest female cow known as the **matriarch**. This was the inspiration for our projects name.
 
 ***Important: This is a work in progress***
 
