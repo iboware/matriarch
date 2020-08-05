@@ -43,7 +43,7 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Deploying the operator...")
 
-		err := utils.DownloadFile("https://github.com/iboware/postgresql-operator/releases/download/v0.3.5.1/postgresql-operator.crd.yaml", "/var/tmp/postgresql-operator.crd.yaml")
+		err := utils.DownloadFile("https://github.com/iboware/postgresql-operator/releases/download/v0.3.5/postgresql-operator.crd.yaml", "/var/tmp/postgresql-operator.crd.yaml")
 
 		if err != nil {
 			log.Fatal(err)
