@@ -91,7 +91,7 @@ func (r *PostgreSQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 
 	secretFound := &v1.Secret{}
 	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: secret.Name, Namespace: secret.Namespace}, secretFound)
-	if err != nil {	
+	if err != nil {
 		if errors.IsNotFound(err) {
 			controllerutil.SetControllerReference(instance, secret, r.Scheme)
 			err = r.Client.Create(context.TODO(), secret)
@@ -162,7 +162,8 @@ func (r *PostgreSQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 			r.Log.Info("failed to get statefulSet")
 			return reconcile.Result{}, err
 		}
-	} else if (statefulSetFound.Spec.Replicas != &instance.Spec.Replicas) && (statefulSetFound.Status.ReadyReplicas == *statefulSetFound.Spec.Replicas) 		statefulSetFound.Spec.Replicas = &instance.Spec.Replicas
+	} else if (statefulSetFound.Spec.Replicas != &instance.Spec.Replicas) && (statefulSetFound.Status.ReadyReplicas == *statefulSetFound.Spec.Replicas) {
+		statefulSetFound.Spec.Replicas = &instance.Spec.Replicas
 		err = r.Client.Update(context.TODO(), statefulSetFound)
 		if err != nil {
 			return reconcile.Result{}, err
