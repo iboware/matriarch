@@ -1,6 +1,5 @@
-[![logo](https://github.com/iboware/matriarch/raw/master/assets/matriarch.png]
+![logo](https://github.com/iboware/matriarch/raw/master/assets/matriarch128.png "")
 
-# Matriarch
 Matriarch is a CLI utility and a Kubernetes Operator to Deploy High Available and Scalable PostgreSQL Clusters
 
 The PostgreSQL logo elephant is named "Slonik". The elephant herd is led by the oldest and largest female cow known as the **matriarch**. This was the inspiration for our projects name.
