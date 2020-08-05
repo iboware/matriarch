@@ -49,7 +49,7 @@ type PostgreSQLReconciler struct {
 // Reconcile is a function
 func (r *PostgreSQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
-	_ = r.Log.WithValues("postgresql", req.NamespacedName)
+	_ = r.Log.WithValues("postgresql", req.Name)
 
 	// Fetch the PostgreSQL instance
 	instance := &databasev1alpha1.PostgreSQL{}
@@ -67,15 +67,31 @@ func (r *PostgreSQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	}
 
 	// Define new objects
+	namespace := postgresql.NewNamespaceForCR(instance)
 	statefulSet := postgresql.NewStatefulSetForCR(instance)
 	service := postgresql.NewServiceForCR(instance)
 	serviceHeadless := postgresql.NewServiceHeadlessForCR(instance)
 	secret := postgresql.NewSecretForCR(instance)
 	configMap, err := postgresql.NewConfigMapForCR(instance)
 
+	namespaceFound := &v1.Namespace{}
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: namespace.Name}, namespaceFound)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			controllerutil.SetControllerReference(instance, namespace, r.Scheme)
+			err = r.Client.Create(context.TODO(), namespace)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		} else {
+			r.Log.Info("failed to get namespace")
+			return reconcile.Result{}, err
+		}
+	}
+
 	secretFound := &v1.Secret{}
 	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: secret.Name, Namespace: secret.Namespace}, secretFound)
-	if err != nil {
+	if err != nil {	
 		if errors.IsNotFound(err) {
 			controllerutil.SetControllerReference(instance, secret, r.Scheme)
 			err = r.Client.Create(context.TODO(), secret)
@@ -146,8 +162,7 @@ func (r *PostgreSQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 			r.Log.Info("failed to get statefulSet")
 			return reconcile.Result{}, err
 		}
-	} else if (statefulSetFound.Spec.Replicas != &instance.Spec.Replicas) && (statefulSetFound.Status.ReadyReplicas == *statefulSetFound.Spec.Replicas) {
-		statefulSetFound.Spec.Replicas = &instance.Spec.Replicas
+	} else if (statefulSetFound.Spec.Replicas != &instance.Spec.Replicas) && (statefulSetFound.Status.ReadyReplicas == *statefulSetFound.Spec.Replicas) 		statefulSetFound.Spec.Replicas = &instance.Spec.Replicas
 		err = r.Client.Update(context.TODO(), statefulSetFound)
 		if err != nil {
 			return reconcile.Result{}, err

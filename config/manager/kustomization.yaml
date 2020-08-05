@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: iboware/postgresql-operator
-  newTag: v0.3.5
+  newTag: v0.3.6
