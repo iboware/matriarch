@@ -9,8 +9,8 @@ Matriarch currently can create and manage **simple** High Available and Scalable
 
 **Matriarch Demonstration** (Init/Create/List/Delete/Scale operations)
 
-[![asciicast](https://asciinema.org/a/tULY7wnMRyyTHojc79eKamDS2.svg)](https://asciinema.org/a/tULY7wnMRyyTHojc79eKamDS2)
-ls
+[![asciicast](https://asciinema.org/a/351880.svg)](https://asciinema.org/a/351880)
+
 **Example Custom Resource to create a cluster**
 
 *YAML:*
