@@ -38,6 +38,9 @@ spec:
               description: 'DiskSize is the persistent volume siz of the PostgreSQL
                 deployment. (example: 8Gi,10Gi)'
               type: string
+            namespace:
+              description: Namespace of the cluster
+              type: string
             postgrespassword:
               description: PostgresPassword is the password for the default user of
                 PostgreSQL
@@ -51,6 +54,7 @@ spec:
               type: string
           required:
           - disksize
+          - namespace
           - postgrespassword
           - replicas
           - repmgrpassword
