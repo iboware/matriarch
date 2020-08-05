@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
+Copyright © 2020 IBRAHIM VAROL <iboware@gmail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,15 +33,8 @@ import (
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "Lists PostgreSQL Clusters",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long:  `Lists PostgreSQL Clusters`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("list called")
-
 		scheme := runtime.NewScheme()
 		_ = clientgoscheme.AddToScheme(scheme)
 		_ = v1alpha1.AddToScheme(scheme)
@@ -57,9 +50,10 @@ to quickly create a Cobra application.`,
 			log.Fatal(err2)
 		}
 
-		fmt.Printf("%-20v %-20v\n", "Name", "Namespace")
+		fmt.Printf("%-20v %-10v %-20v\n", "Name", "Replicas", "Namespace")
+
 		for _, item := range list.Items {
-			fmt.Printf("%-20v %-20v\n", item.Name, item.Namespace)
+			fmt.Printf("%-20v %-10v %-20v\n", item.Name, item.Spec.Replicas, item.Namespace)
 		}
 
 	},
