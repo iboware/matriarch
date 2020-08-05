@@ -22,7 +22,11 @@ func NewConfigMapForCR(cr *databasev1alpha1.PostgreSQL) (*v1.ConfigMap, error) {
 		return nil, err
 	}
 	configMap := &v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: cr.ObjectMeta.Name + "-postgresql-hooks-scripts", Labels: labels, Namespace: cr.ObjectMeta.Namespace},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.ObjectMeta.Name + "-postgresql-hooks-scripts",
+			Labels:    labels,
+			Namespace: cr.Spec.Namespace,
+		},
 		Data: map[string]string{
 			"pre-stop.sh": string(preStop),
 		},

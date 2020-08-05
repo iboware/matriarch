@@ -15,8 +15,12 @@ func NewSecretForCR(cr *databasev1alpha1.PostgreSQL) *v1.Secret {
 	encodedrepMgrPassword := cr.Spec.RepMGRPassword
 
 	secret := &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{Name: cr.ObjectMeta.Name + "-postgresql", Labels: labels, Namespace: cr.ObjectMeta.Namespace},
-		Type:       v1.SecretTypeOpaque,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.ObjectMeta.Name + "-postgresql",
+			Labels:    labels,
+			Namespace: cr.Spec.Namespace,
+		},
+		Type: v1.SecretTypeOpaque,
 		StringData: map[string]string{
 			"postgresql-password": encodedpgPassword,
 			"repmgr-password":     encodedrepMgrPassword,

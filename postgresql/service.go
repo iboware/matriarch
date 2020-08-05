@@ -12,7 +12,11 @@ import (
 func NewServiceHeadlessForCR(cr *databasev1alpha1.PostgreSQL) *v1.Service {
 	labels := utils.LabelsForPostgreSQL(cr.ObjectMeta.Name)
 	service := &v1.Service{
-		ObjectMeta: metav1.ObjectMeta{Name: cr.ObjectMeta.Name + "-postgresql-headless", Labels: labels, Namespace: cr.ObjectMeta.Namespace},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.ObjectMeta.Name + "-postgresql-headless",
+			Labels:    labels,
+			Namespace: cr.Spec.Namespace,
+		},
 		Spec: v1.ServiceSpec{
 			Type:     v1.ServiceTypeClusterIP,
 			Selector: labels,
@@ -33,7 +37,11 @@ func NewServiceHeadlessForCR(cr *databasev1alpha1.PostgreSQL) *v1.Service {
 func NewServiceForCR(cr *databasev1alpha1.PostgreSQL) *v1.Service {
 	labels := utils.LabelsForPostgreSQL(cr.ObjectMeta.Name)
 	service := &v1.Service{
-		ObjectMeta: metav1.ObjectMeta{Name: cr.ObjectMeta.Name + "-postgresql", Labels: labels, Namespace: cr.ObjectMeta.Namespace},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.ObjectMeta.Name + "-postgresql",
+			Labels:    labels,
+			Namespace: cr.Spec.Namespace,
+		},
 		Spec: v1.ServiceSpec{
 			Type:     v1.ServiceTypeClusterIP,
 			Selector: labels,

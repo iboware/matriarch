@@ -18,7 +18,7 @@ func NewStatefulSetForCR(cr *databasev1alpha1.PostgreSQL) *appsv1.StatefulSet {
 	var log = logf.Log.WithName("controller_postgresql")
 
 	labels := utils.LabelsForPostgreSQL(cr.ObjectMeta.Name)
-	envVars := envVarsForPostgreSQL(cr.ObjectMeta.Name, int(cr.Spec.Replicas), cr.ObjectMeta.Namespace)
+	envVars := envVarsForPostgreSQL(cr.ObjectMeta.Name, int(cr.Spec.Replicas), cr.Spec.Namespace)
 	livenessProbeCmd := []string{
 		"sh",
 		"-c",
@@ -52,7 +52,7 @@ func NewStatefulSetForCR(cr *databasev1alpha1.PostgreSQL) *appsv1.StatefulSet {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.ObjectMeta.Name + "-postgresql",
-			Namespace: cr.ObjectMeta.Namespace,
+			Namespace: cr.Spec.Namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
 			ServiceName: cr.ObjectMeta.Name + "-postgresql-headless",

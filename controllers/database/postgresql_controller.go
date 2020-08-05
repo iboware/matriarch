@@ -164,6 +164,10 @@ func (r *PostgreSQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 func (r *PostgreSQLReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&databasev1alpha1.PostgreSQL{}).
+		Owns(&appsv1.StatefulSet{}).
+		Owns(&v1.ConfigMap{}).
+		Owns(&v1.Secret{}).
+		Owns(&v1.Service{}).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 2}).
 		Complete(r)
 }

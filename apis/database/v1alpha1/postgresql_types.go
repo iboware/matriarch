@@ -36,6 +36,8 @@ type PostgreSQLSpec struct {
 	PostgresPassword string `json:"postgrespassword"`
 	//RepMGRPassword is the password for RepMGR.
 	RepMGRPassword string `json:"repmgrpassword"`
+	//Namespace of the cluster
+	Namespace string `json:"namespace"`
 }
 
 // PostgreSQLStatus defines the observed state of PostgreSQL
@@ -46,7 +48,7 @@ type PostgreSQLStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:resource:path=postgresqls,scope=Cluster
 
 // PostgreSQL is the Schema for the postgresqls API
 type PostgreSQL struct {
