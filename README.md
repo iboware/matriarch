@@ -10,7 +10,7 @@ Matriarch currently can create and manage **simple** High Available and Scalable
 
 **How to Install**
 1. Download [**matriarch**](https://github.com/iboware/matriarch/releases/download/v0.3.7/matriarch)
-2. Put it under any binary path.
+2. Put it under any binary path. (eg. /usr/local/bin)
 4. Deploy operator via `matriarch init` to the active cluster in your `kubeconfig` file.
 3. Start creating and managing PostgreSQL clusters.
 
