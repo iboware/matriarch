@@ -44,7 +44,7 @@ type PostgreSQLReconciler struct {
 // +kubebuilder:rbac:groups=database.iboware.com,resources=postgresqls,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=database.iboware.com,resources=postgresqls/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=apps,resources=deployments;pods;daemonsets;replicasets;statefulsets,verbs=get;update;patch;list;create;delete;watch
-// +kubebuilder:rbac:groups=core,resources=secrets;configmaps;services;persistentvolumeclaims,verbs=get;update;patch;list;create;delete;watch
+// +kubebuilder:rbac:groups=core,resources=secrets;configmaps;services;persistentvolumeclaims;namespaces,verbs=get;update;patch;list;create;delete;watch
 
 // Reconcile is a function
 func (r *PostgreSQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {

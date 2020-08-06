@@ -32,8 +32,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "matriarch",
 	Short: "Matriarch is a CLI utility to deploy and manage PosgreSQL Clusters on Kubernetes",
-	Long: `Matriarch is a CLI utility to deploy and manage PosgreSQL Clusters on Kubernetes.
-	It can deploy high available and scalable PosgreSQL clusters.`,
+	Long:  `Matriarch is a CLI utility to deploy and manage PosgreSQL Clusters on Kubernetes. It can deploy high available and scalable PosgreSQL clusters.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },
