@@ -6,7 +6,7 @@ The PostgreSQL logo elephant is named "Slonik". The elephant herd is led by the 
 
 ***Important: This is a work in progress***
 
-Matriarch currently can create and manage **simple** High Available and Scalable Clusters of PostgreSQL based on [bitnami/bitnami-docker-postgresql-repmgr](http://github.com//bitnami/bitnami-docker-postgresql-repmgr) image via Matriarch CLI utility to deploy and manage the operator. 
+Matriarch currently can create and manage **simple** High Available and Scalable Clusters of PostgreSQL based on [bitnami/bitnami-docker-postgresql-repmgr](http://github.com//bitnami/bitnami-docker-postgresql-repmgr) image via Matriarch CLI utility. 
 
 **How to Install**
 1. Download [**matriarch**](https://github.com/iboware/matriarch/releases/download/v0.3.7/matriarch)
