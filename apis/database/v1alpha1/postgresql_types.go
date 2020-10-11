@@ -38,6 +38,10 @@ type PostgreSQLSpec struct {
 	RepMGRPassword string `json:"repmgrpassword"`
 	//Namespace of the cluster
 	Namespace string `json:"namespace"`
+	//Enables PgPool Deployment
+	EnablePgPool bool `json:"pgpool"`
+	//PgPoolPassword is the password of Admin user for PgPool.
+	PgPoolPassword string `json:"pgpoolpassword"`
 }
 
 // PostgreSQLStatus defines the observed state of PostgreSQL

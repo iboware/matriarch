@@ -60,6 +60,8 @@ var createCmd = &cobra.Command{
 		namespace, _ := cmd.Flags().GetString("namespace")
 		postgrespassword, _ := cmd.Flags().GetString("postgrespassword")
 		repmgrspassword, _ := cmd.Flags().GetString("repmgrpassword")
+		pgpoolpassword, _ := cmd.Flags().GetString("pgpoolpassword")
+		enablepgpool, _ := cmd.Flags().GetBool("enablepgpool")
 
 		if len(strings.TrimSpace(postgrespassword)) == 0 {
 			postgrespassword, _ = password.Generate(8, 3, 3, false, false)
@@ -79,6 +81,8 @@ var createCmd = &cobra.Command{
 				PostgresPassword: postgrespassword,
 				RepMGRPassword:   repmgrspassword,
 				Namespace:        namespace,
+				PgPoolPassword:   pgpoolpassword,
+				EnablePgPool:     enablepgpool,
 			},
 		}
 		error := kubeclient.Create(context.Background(), cr)
@@ -110,6 +114,9 @@ func init() {
 	createCmd.Flags().StringP("namespace", "n", "default", "Namespace")
 	createCmd.Flags().StringP("postgrespassword", "p", "", "Password for default PostgreSql user")
 	createCmd.Flags().StringP("repmgrpassword", "m", "", "Password for RepMGR. If not specified PostgreSQL password will be used.")
+	createCmd.Flags().StringP("pgpoolpassword", "l", "", "Password for PgPool. If not specified PostgreSQL password will be used.")
+	createCmd.Flags().BoolP("enablepgpool", "e", false, "Enables PgPool for connection pooling and load balancing (cannot be disabled)")
+
 }
 
 func homeDir() string {

@@ -18,10 +18,12 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 
+	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/go-logr/logr"
 	databasev1alpha1 "github.com/iboware/postgresql-operator/apis/database/v1alpha1"
-	"github.com/iboware/postgresql-operator/postgresql"
+	postgres "github.com/iboware/postgresql-operator/postgres"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -52,8 +54,8 @@ func (r *PostgreSQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	_ = r.Log.WithValues("postgresql", req.Name)
 
 	// Fetch the PostgreSQL instance
-	instance := &databasev1alpha1.PostgreSQL{}
-	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
+	crd := &databasev1alpha1.PostgreSQL{}
+	err := r.Get(context.TODO(), req.NamespacedName, crd)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -67,116 +69,188 @@ func (r *PostgreSQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	}
 
 	// Define new objects
-	namespace := postgresql.NewNamespaceForCR(instance)
-	statefulSet := postgresql.NewStatefulSetForCR(instance)
-	service := postgresql.NewServiceForCR(instance)
-	serviceHeadless := postgresql.NewServiceHeadlessForCR(instance)
-	secret := postgresql.NewSecretForCR(instance)
-	configMap, err := postgresql.NewConfigMapForCR(instance)
+	namespace := postgres.NewNamespaceForCR(crd)
+	postgresStatefulSet := postgres.NewStatefulSet(crd)
+	postgresService := postgres.NewPostgresService(crd)
+	postgresServiceHeadless := postgres.NewPostgressHeadlessService(crd)
+	postgresSecret := postgres.NewPostgresSecret(crd)
+	posgresConfigMap, err := postgres.NewConfigMap(crd)
+	pgPoolDeployment := postgres.NewPgPoolDeployment(crd)
+	pgPoolService := postgres.NewPgPoolService(crd)
 
 	namespaceFound := &v1.Namespace{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: namespace.Name}, namespaceFound)
+	err = r.Get(context.TODO(), types.NamespacedName{Name: namespace.Name}, namespaceFound)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			controllerutil.SetControllerReference(instance, namespace, r.Scheme)
-			err = r.Client.Create(context.TODO(), namespace)
+			controllerutil.SetControllerReference(crd, namespace, r.Scheme)
+			err = r.Create(context.TODO(), namespace)
 			if err != nil {
 				return reconcile.Result{}, err
 			}
 		} else {
-			r.Log.Info("failed to get namespace")
+			r.Log.Info("failed to get Namespace")
 			return reconcile.Result{}, err
 		}
 	}
 
 	secretFound := &v1.Secret{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: secret.Name, Namespace: secret.Namespace}, secretFound)
+	err = r.Get(context.TODO(), types.NamespacedName{Name: postgresSecret.Name, Namespace: postgresSecret.Namespace}, secretFound)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			controllerutil.SetControllerReference(instance, secret, r.Scheme)
-			err = r.Client.Create(context.TODO(), secret)
+			controllerutil.SetControllerReference(crd, postgresSecret, r.Scheme)
+			err = r.Create(context.TODO(), postgresSecret)
 			if err != nil {
 				return reconcile.Result{}, err
 			}
 		} else {
-			r.Log.Info("failed to get secret")
+			r.Log.Info("failed to get Postgres Secret")
 			return reconcile.Result{}, err
 		}
 	}
 
 	configMapFound := &v1.ConfigMap{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: configMap.Name, Namespace: configMap.Namespace}, configMapFound)
+	err = r.Get(context.TODO(), types.NamespacedName{Name: posgresConfigMap.Name, Namespace: posgresConfigMap.Namespace}, configMapFound)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			controllerutil.SetControllerReference(instance, configMap, r.Scheme)
-			err = r.Client.Create(context.TODO(), configMap)
+			controllerutil.SetControllerReference(crd, posgresConfigMap, r.Scheme)
+			err = r.Create(context.TODO(), posgresConfigMap)
 			if err != nil {
 				return reconcile.Result{}, err
 			}
 		} else {
-			r.Log.Info("failed to get ConfigMap")
+			r.Log.Info("failed to get Postgres ConfigMap")
 			return reconcile.Result{}, err
 		}
 	}
 
 	serviceFound := &v1.Service{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, serviceFound)
+	err = r.Get(context.TODO(), types.NamespacedName{Name: postgresService.Name, Namespace: postgresService.Namespace}, serviceFound)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			controllerutil.SetControllerReference(instance, service, r.Scheme)
-			err = r.Client.Create(context.TODO(), service)
+			controllerutil.SetControllerReference(crd, postgresService, r.Scheme)
+			err = r.Create(context.TODO(), postgresService)
 			if err != nil {
 				return reconcile.Result{}, err
 			}
 		} else {
-			r.Log.Info("failed to get Service")
+			r.Log.Info("failed to get Postgres Service")
 			return reconcile.Result{}, err
 		}
 	}
 
 	serviceHeadlessFound := &v1.Service{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: serviceHeadless.Name, Namespace: serviceHeadless.Namespace}, serviceHeadlessFound)
+	err = r.Get(context.TODO(), types.NamespacedName{Name: postgresServiceHeadless.Name, Namespace: postgresServiceHeadless.Namespace}, serviceHeadlessFound)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			controllerutil.SetControllerReference(instance, serviceHeadless, r.Scheme)
-			err = r.Client.Create(context.TODO(), serviceHeadless)
+			controllerutil.SetControllerReference(crd, postgresServiceHeadless, r.Scheme)
+			err = r.Create(context.TODO(), postgresServiceHeadless)
 			if err != nil {
 				return reconcile.Result{}, err
 			}
 		} else {
-			r.Log.Info("failed to get Headless Service")
+			r.Log.Info("failed to get Postgres Headless Service")
 			return reconcile.Result{}, err
 		}
 	}
 
 	statefulSetFound := &appsv1.StatefulSet{}
-	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: statefulSet.Name, Namespace: statefulSet.Namespace}, statefulSetFound)
+	err = r.Get(context.TODO(), types.NamespacedName{Name: postgresStatefulSet.Name, Namespace: postgresStatefulSet.Namespace}, statefulSetFound)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			controllerutil.SetControllerReference(instance, statefulSet, r.Scheme)
-			err = r.Client.Create(context.TODO(), statefulSet)
+			controllerutil.SetControllerReference(crd, postgresStatefulSet, r.Scheme)
+			err = r.Create(context.TODO(), postgresStatefulSet)
 			if err != nil {
 				return reconcile.Result{}, err
 			}
 		} else {
-			r.Log.Info("failed to get statefulSet")
+			r.Log.Info("failed to get Postgres StatefulSet")
 			return reconcile.Result{}, err
 		}
-	} else if (statefulSetFound.Spec.Replicas != &instance.Spec.Replicas) && (statefulSetFound.Status.ReadyReplicas == *statefulSetFound.Spec.Replicas) {
-		statefulSetFound.Spec.Replicas = &instance.Spec.Replicas
-		err = r.Client.Update(context.TODO(), statefulSetFound)
+	} else if *statefulSetFound.Spec.Replicas != crd.Spec.Replicas {
+		var originalStatefulSet, err1 = json.Marshal(statefulSetFound)
+		if err1 != nil {
+			return reconcile.Result{}, err1
+		}
+		statefulSetFound.Spec.Replicas = &crd.Spec.Replicas
+		statefulSetFound.Spec.Template.Spec.Containers[0].Env = postgres.EnvVarsForStatefulSet(crd.ObjectMeta.Name, int(crd.Spec.Replicas), crd.Spec.Namespace, crd.Spec.EnablePgPool)
+
+		var newStatefulSet, err2 = json.Marshal(statefulSetFound)
+		if err2 != nil {
+			return reconcile.Result{}, err2
+		}
+
+		var patchBytes, err3 = jsonpatch.CreateMergePatch(originalStatefulSet, newStatefulSet)
+		if err != nil {
+			return reconcile.Result{}, err3
+		}
+
+		err = r.Patch(context.TODO(), statefulSetFound, client.RawPatch(types.MergePatchType, patchBytes))
 		if err != nil {
 			return reconcile.Result{}, err
 		}
-		r.Log.Info("statefulSet updated")
+		r.Log.Info("Postgres StatefulSet updated")
 	}
 
-	r.Client.Status().Update(context.TODO(), instance)
+	//PgPool
+	if crd.Spec.EnablePgPool {
+		pgPoolServiceFound := &v1.Service{}
+		err = r.Get(context.TODO(), types.NamespacedName{Name: pgPoolService.Name, Namespace: pgPoolService.Namespace}, pgPoolServiceFound)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				controllerutil.SetControllerReference(crd, pgPoolService, r.Scheme)
+				err = r.Create(context.TODO(), pgPoolService)
+				if err != nil {
+					return reconcile.Result{}, err
+				}
+			} else {
+				r.Log.Info("failed to get pgPool Service")
+				return reconcile.Result{}, err
+			}
+		}
 
+		pgPoolDeploymentFound := &appsv1.Deployment{}
+		err = r.Get(context.TODO(), types.NamespacedName{Name: pgPoolDeployment.Name, Namespace: pgPoolDeployment.Namespace}, pgPoolDeploymentFound)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				controllerutil.SetControllerReference(crd, pgPoolDeployment, r.Scheme)
+				err = r.Create(context.TODO(), pgPoolDeployment)
+				if err != nil {
+					return reconcile.Result{}, err
+				}
+			} else {
+				r.Log.Info("failed to get pgPool Deployment")
+				return reconcile.Result{}, err
+			}
+		} else if *pgPoolDeploymentFound.Spec.Replicas != crd.Spec.Replicas {
+			var originalDeployment, err1 = json.Marshal(pgPoolDeploymentFound)
+			if err1 != nil {
+				return reconcile.Result{}, err1
+			}
+			pgPoolDeploymentFound.Spec.Replicas = &crd.Spec.Replicas
+			pgPoolDeploymentFound.Spec.Template.Spec.Containers[0].Env = postgres.EnvVarsForPgPool(crd.ObjectMeta.Name, int(crd.Spec.Replicas), crd.Spec.Namespace)
+
+			var newDeployment, err2 = json.Marshal(pgPoolDeploymentFound)
+			if err2 != nil {
+				return reconcile.Result{}, err2
+			}
+
+			var patchBytes, err3 = jsonpatch.CreateMergePatch(originalDeployment, newDeployment)
+			if err != nil {
+				return reconcile.Result{}, err3
+			}
+
+			err = r.Patch(context.TODO(), pgPoolDeploymentFound, client.RawPatch(types.MergePatchType, patchBytes))
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+			r.Log.Info("pgPool Deployment updated")
+		}
+	}
+	r.Status().Update(context.TODO(), crd)
 	return ctrl.Result{}, nil
 }
 
-// SetupWithManager is a function
+// SetupWithManager sets up reconciler.
 func (r *PostgreSQLReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&databasev1alpha1.PostgreSQL{}).
@@ -184,6 +258,6 @@ func (r *PostgreSQLReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&v1.ConfigMap{}).
 		Owns(&v1.Secret{}).
 		Owns(&v1.Service{}).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 2}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 1}).
 		Complete(r)
 }

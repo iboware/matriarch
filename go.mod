@@ -3,6 +3,7 @@ module github.com/iboware/postgresql-operator
 go 1.13
 
 require (
+	github.com/evanphx/json-patch v4.5.0+incompatible
 	github.com/go-logr/logr v0.1.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onsi/ginkgo v1.11.0

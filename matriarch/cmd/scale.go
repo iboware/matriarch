@@ -35,7 +35,7 @@ import (
 var scaleCmd = &cobra.Command{
 	Use:   "scale [cluster name]",
 	Short: "Scales a cluster",
-	Long:  `Scales a cluster with given parameters up or down`,
+	Long:  `Scales a cluster with given parameters up or down. If pgpool is enabled, it will be also scaled with PostgreSQL`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			log.Fatal("scale needs a name for the cluster")

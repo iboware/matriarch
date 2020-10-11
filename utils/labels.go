@@ -1,12 +1,12 @@
 package utils
 
-// LabelsForPostgreSQL is a function which creates default labels
-func LabelsForPostgreSQL(name string) map[string]string {
+// NewLabels is a function which creates default labels
+func NewLabels(name string, instance string, component string) map[string]string {
 	return map[string]string{
-		"app":                         "postgresql",
-		"postgresql_cr":               name,
-		"app.kubernetes.io/name":      "postgresql",
-		"app.kubernetes.io/instance":  name,
-		"app.kubernetes.io/component": "postgresql",
+		"app":                         "matriarch",
+		"postgresql_cr":               instance,
+		"app.kubernetes.io/name":      name,
+		"app.kubernetes.io/instance":  instance,
+		"app.kubernetes.io/component": component,
 	}
 }

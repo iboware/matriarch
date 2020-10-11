@@ -43,6 +43,12 @@ spec:
             namespace:
               description: Namespace of the cluster
               type: string
+            pgpool:
+              description: Enables PgPool Deployment
+              type: boolean
+            pgpoolpassword:
+              description: PgPoolPassword is the password of Admin user for PgPool.
+              type: string
             postgrespassword:
               description: PostgresPassword is the password for the default user of
                 PostgreSQL
@@ -57,6 +63,8 @@ spec:
           required:
           - disksize
           - namespace
+          - pgpool
+          - pgpoolpassword
           - postgrespassword
           - replicas
           - repmgrpassword

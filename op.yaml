@@ -10,7 +10,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.0
-  creationTimestamp: null
   name: postgresqls.database.iboware.com
 spec:
   group: database.iboware.com
@@ -48,6 +47,12 @@ spec:
             namespace:
               description: Namespace of the cluster
               type: string
+            pgpool:
+              description: Enables PgPool Deployment
+              type: boolean
+            pgpoolpassword:
+              description: PgPoolPassword is the password of Admin user for PgPool.
+              type: string
             postgrespassword:
               description: PostgresPassword is the password for the default user of
                 PostgreSQL
@@ -62,6 +67,8 @@ spec:
           required:
           - disksize
           - namespace
+          - pgpool
+          - pgpoolpassword
           - postgrespassword
           - replicas
           - repmgrpassword
@@ -119,7 +126,6 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: postgresql-operator-manager-role
 rules:
 - apiGroups:
@@ -142,6 +148,7 @@ rules:
   - ""
   resources:
   - configmaps
+  - namespaces
   - persistentvolumeclaims
   - secrets
   - services
@@ -290,7 +297,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: iboware/postgresql-operator:v0.3.7
+        image: iboware/postgresql-operator:v0.4.0
         name: manager
         resources:
           limits:
