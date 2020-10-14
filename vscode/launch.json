@@ -1,0 +1,86 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "PostgreSQL Operator",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/main.go",
+      "env": {
+        "WATCH_NAMESPACE": "default",
+        "OPERATOR_NAME": "postgresql-operator",
+        "ENABLE_WEBHOOKS": false
+      },
+      "args": []
+    },
+    {
+      "name": "pgctl-create",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/matriarch/main.go",
+      "env": {},
+      "args": [
+        "create",
+        "iwr-pgsql",
+        "-n",
+        "iboware",
+        "-r",
+        "3"
+      ]
+    },
+    {
+      "name": "pgctl-delete",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/matriarch/main.go",
+      "env": {},
+      "args": [
+        "delete",
+        "iwr-pgsql",
+        "-n",
+        "iboware"
+      ]
+    },
+    {
+      "name": "pgctl-list",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/matriarch/main.go",
+      "env": {},
+      "args": [
+        "list",
+      ]
+    },
+    {
+      "name": "pgctl-scale",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/matriarch/main.go",
+      "env": {},
+      "args": [
+        "scale",
+        "test1",
+        "-n",
+        "iboware",
+        "-r",
+        "3"
+      ]
+    },
+    {
+      "name": "pgctl-init",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/matriarch/main.go",
+      "env": {},
+      "args": [
+        "init",
+      ]
+    }
+  ]
+}
